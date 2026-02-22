@@ -3,6 +3,9 @@ import { i18nRouter } from "next-i18n-router"
 import { NextResponse, type NextRequest } from "next/server"
 import i18nConfig from "./i18nConfig"
 
+const FIXED_LOCALE = "en"
+const FIXED_WORKSPACE = "zodistar"
+
 export async function middleware(request: NextRequest) {
   const i18nResult = i18nRouter(request, i18nConfig)
   if (i18nResult) return i18nResult
@@ -13,17 +16,29 @@ export async function middleware(request: NextRequest) {
     data: { session }
   } = await supabase.auth.getSession()
 
-  const isAuthRoute = request.nextUrl.pathname.startsWith("/auth")
-  const isRoot = request.nextUrl.pathname === "/"
+  const { pathname } = request.nextUrl
 
-  // If not logged in and trying to access app, redirect to login
+  const isAuthRoute = pathname.startsWith("/auth")
+  const isRoot = pathname === "/"
+  const isPlainChat = pathname === "/chat"
+
+  // 🔒 Not logged in → force login
   if (!session && !isAuthRoute) {
     return NextResponse.redirect(new URL("/auth/login", request.url))
   }
 
-  // If logged in and at root, redirect to /chat
+  // ✅ Logged in at root → force fixed workspace chat
   if (session && isRoot) {
-    return NextResponse.redirect(new URL("/chat", request.url))
+    return NextResponse.redirect(
+      new URL(`/${FIXED_LOCALE}/${FIXED_WORKSPACE}/chat`, request.url)
+    )
+  }
+
+  // ✅ Logged in hitting /chat directly → rewrite to fixed workspace
+  if (session && isPlainChat) {
+    return NextResponse.redirect(
+      new URL(`/${FIXED_LOCALE}/${FIXED_WORKSPACE}/chat`, request.url)
+    )
   }
 
   return response

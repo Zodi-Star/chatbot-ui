@@ -5,7 +5,6 @@ export const uploadProfileImage = async (
   profile: Tables<"profiles">,
   image: File
 ) => {
-
   const imageSizeLimit = 2000000 // 2MB
 
   if (image.size > imageSizeLimit) {
