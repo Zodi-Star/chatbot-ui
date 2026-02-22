@@ -18,7 +18,7 @@ export const uploadWorkspaceImage = async (
 
   if (currentPath.length > 0) {
     const { error: deleteError } = await supabase.storage
-      .from(bucket)
+      .from("files")
       .remove([currentPath])
 
     if (deleteError) {
@@ -27,7 +27,7 @@ export const uploadWorkspaceImage = async (
   }
 
   const { error } = await supabase.storage
-    .from(bucket)
+    .from("files")
     .upload(filePath, image, {
       upsert: true
     })

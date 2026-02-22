@@ -17,7 +17,7 @@ export const uploadProfileImage = async (
 
   if (currentPath.length > 0) {
     const { error: deleteError } = await supabase.storage
-      .from(bucket)
+      .from("files")
       .remove([currentPath])
 
     if (deleteError) {
@@ -26,7 +26,7 @@ export const uploadProfileImage = async (
   }
 
   const { error } = await supabase.storage
-    .from(bucket)
+    .from("files")
     .upload(filePath, image, {
       upsert: true
     })
@@ -36,7 +36,7 @@ export const uploadProfileImage = async (
   }
 
   const { data: getPublicUrlData } = supabase.storage
-    .from(bucket)
+    .from("files")
     .getPublicUrl(filePath)
 
   return {

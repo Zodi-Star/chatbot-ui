@@ -9,7 +9,7 @@ export const uploadMessageImage = async (path: string, image: File) => {
     throw new Error(`Image must be less than ${imageSizeLimit / 1000000}MB`)
   }
 
-  const { error } = await supabase.storage.from(bucket).upload(path, image, {
+  const { error } = await supabase.storage.from("files").upload(path, image, {
     upsert: true
   })
 
