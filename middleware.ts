@@ -18,7 +18,11 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  const isAuthRoute = pathname.startsWith("/auth")
+  const isAuthRoute =
+  pathname.startsWith("/login") ||
+  pathname.startsWith("/signup") ||
+  pathname.startsWith("/reset-password")
+  
   const isRoot = pathname === "/"
   const isPlainChat = pathname === "/chat"
 
