@@ -95,12 +95,7 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
 setSelectedWorkspace(null)
 setAssistants([])
 
-    for (const assistant of assistantData.assistants) {
-      let url = ""
-
-      if (assistant.image_path) {
-        url = (await getAssistantImageFromStorage(assistant.image_path)) || ""
-      }
+    // assistants disabled for MVP (workspace system removed)
 
       if (url) {
         const response = await fetch(url)
