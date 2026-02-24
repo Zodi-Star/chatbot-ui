@@ -1,12 +1,7 @@
-// TODO: Separate into multiple contexts, keeping simple for now
-
 "use client"
 
 import { ChatbotUIContext } from "@/context/context"
 import { getProfileByUserId } from "@/db/profile"
-import { getWorkspaceImageFromStorage } from "@/db/storage/workspace-images"
-import { getWorkspacesByUserId } from "@/db/workspaces"
-import { convertBlobToBase64 } from "@/lib/blob-to-b64"
 import {
   fetchHostedModels,
   fetchOllamaModels,
@@ -20,8 +15,7 @@ import {
   ChatSettings,
   LLM,
   MessageImage,
-  OpenRouterLLM,
-  WorkspaceImage
+  OpenRouterLLM
 } from "@/types"
 import { AssistantImage } from "@/types/images/assistant-image"
 import { VALID_ENV_KEYS } from "@/types/valid-keys"
@@ -38,7 +32,7 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
   // PROFILE STORE
   const [profile, setProfile] = useState<Tables<"profiles"> | null>(null)
 
-  // ITEMS STORE
+  // ITEMS STORE (workspace system removed)
   const [assistants, setAssistants] = useState<Tables<"assistants">[]>([])
   const [collections, setCollections] = useState<Tables<"collections">[]>([])
   const [chats, setChats] = useState<Tables<"chats">[]>([])
@@ -48,20 +42,18 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
   const [presets, setPresets] = useState<Tables<"presets">[]>([])
   const [prompts, setPrompts] = useState<Tables<"prompts">[]>([])
   const [tools, setTools] = useState<Tables<"tools">[]>([])
-  const [workspaces, setWorkspaces] = useState<Tables<"workspaces">[]>([])
+
+  // Workspace placeholders (kept for compatibility, not used)
+  const [workspaces, setWorkspaces] = useState<any[]>([])
+  const [selectedWorkspace, setSelectedWorkspace] = useState<any>(null)
+  const [workspaceImages, setWorkspaceImages] = useState<any[]>([])
 
   // MODELS STORE
   const [envKeyMap, setEnvKeyMap] = useState<Record<string, VALID_ENV_KEYS>>({})
   const [availableHostedModels, setAvailableHostedModels] = useState<LLM[]>([])
   const [availableLocalModels, setAvailableLocalModels] = useState<LLM[]>([])
-  const [availableOpenRouterModels, setAvailableOpenRouterModels] = useState<
-    OpenRouterLLM[]
-  >([])
-
-  // WORKSPACE STORE
-  const [selectedWorkspace, setSelectedWorkspace] =
-    useState<Tables<"workspaces"> | null>(null)
-  const [workspaceImages, setWorkspaceImages] = useState<WorkspaceImage[]>([])
+  const [availableOpenRouterModels, setAvailableOpenRouterModels] =
+    useState<OpenRouterLLM[]>([])
 
   // PRESET STORE
   const [selectedPreset, setSelectedPreset] =
@@ -82,15 +74,18 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
     temperature: 0.5,
     contextLength: 4000,
     includeProfileContext: true,
-    includeWorkspaceInstructions: true,
+    includeWorkspaceInstructions: false,
     embeddingsProvider: "openai"
   })
-  const [selectedChat, setSelectedChat] = useState<Tables<"chats"> | null>(null)
-  const [chatFileItems, setChatFileItems] = useState<Tables<"file_items">[]>([])
+  const [selectedChat, setSelectedChat] =
+    useState<Tables<"chats"> | null>(null)
+  const [chatFileItems, setChatFileItems] =
+    useState<Tables<"file_items">[]>([])
 
   // ACTIVE CHAT STORE
   const [isGenerating, setIsGenerating] = useState<boolean>(false)
-  const [firstTokenReceived, setFirstTokenReceived] = useState<boolean>(false)
+  const [firstTokenReceived, setFirstTokenReceived] =
+    useState<boolean>(false)
   const [abortController, setAbortController] =
     useState<AbortController | null>(null)
 
@@ -106,105 +101,73 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
   const [focusTool, setFocusTool] = useState(false)
   const [focusAssistant, setFocusAssistant] = useState(false)
   const [atCommand, setAtCommand] = useState("")
-  const [isAssistantPickerOpen, setIsAssistantPickerOpen] = useState(false)
+  const [isAssistantPickerOpen, setIsAssistantPickerOpen] =
+    useState(false)
 
   // ATTACHMENTS STORE
   const [chatFiles, setChatFiles] = useState<ChatFile[]>([])
   const [chatImages, setChatImages] = useState<MessageImage[]>([])
   const [newMessageFiles, setNewMessageFiles] = useState<ChatFile[]>([])
-  const [newMessageImages, setNewMessageImages] = useState<MessageImage[]>([])
-  const [showFilesDisplay, setShowFilesDisplay] = useState<boolean>(false)
+  const [newMessageImages, setNewMessageImages] =
+    useState<MessageImage[]>([])
+  const [showFilesDisplay, setShowFilesDisplay] =
+    useState<boolean>(false)
 
-  // RETIEVAL STORE
+  // RETRIEVAL STORE
   const [useRetrieval, setUseRetrieval] = useState<boolean>(true)
   const [sourceCount, setSourceCount] = useState<number>(4)
 
   // TOOL STORE
-  const [selectedTools, setSelectedTools] = useState<Tables<"tools">[]>([])
+  const [selectedTools, setSelectedTools] =
+    useState<Tables<"tools">[]>([])
   const [toolInUse, setToolInUse] = useState<string>("none")
 
   useEffect(() => {
     ;(async () => {
-      const profile = await fetchStartingData()
+      const session = (await supabase.auth.getSession()).data.session
 
-      if (profile) {
-        const hostedModelRes = await fetchHostedModels(profile)
-        if (!hostedModelRes) return
+      if (!session) return
 
-        setEnvKeyMap(hostedModelRes.envKeyMap)
-        setAvailableHostedModels(hostedModelRes.hostedModels)
+      const user = session.user
+      const profile = await getProfileByUserId(user.id)
+      setProfile(profile)
 
-        if (
-          profile["openrouter_api_key"] ||
-          hostedModelRes.envKeyMap["openrouter"]
-        ) {
-          const openRouterModels = await fetchOpenRouterModels()
-          if (!openRouterModels) return
+      if (!profile?.has_onboarded) {
+        router.push("/setup")
+        return
+      }
+
+      const hostedModelRes = await fetchHostedModels(profile)
+      if (!hostedModelRes) return
+
+      setEnvKeyMap(hostedModelRes.envKeyMap)
+      setAvailableHostedModels(hostedModelRes.hostedModels)
+
+      if (
+        profile["openrouter_api_key"] ||
+        hostedModelRes.envKeyMap["openrouter"]
+      ) {
+        const openRouterModels = await fetchOpenRouterModels()
+        if (openRouterModels) {
           setAvailableOpenRouterModels(openRouterModels)
         }
       }
 
       if (process.env.NEXT_PUBLIC_OLLAMA_URL) {
         const localModels = await fetchOllamaModels()
-        if (!localModels) return
-        setAvailableLocalModels(localModels)
+        if (localModels) {
+          setAvailableLocalModels(localModels)
+        }
       }
     })()
   }, [])
 
-  const fetchStartingData = async () => {
-    const session = (await supabase.auth.getSession()).data.session
-
-    if (session) {
-      const user = session.user
-
-      const profile = await getProfileByUserId(user.id)
-      setProfile(profile)
-
-      if (!profile.has_onboarded) {
-        return router.push("/setup")
-      }
-
-      const workspaces = await getWorkspacesByUserId(user.id)
-      setWorkspaces(workspaces)
-
-      for (const workspace of workspaces) {
-        let workspaceImageUrl = ""
-
-        if (workspace.image_path) {
-          workspaceImageUrl =
-            (await getWorkspaceImageFromStorage(workspace.image_path)) || ""
-        }
-
-        if (workspaceImageUrl) {
-          const response = await fetch(workspaceImageUrl)
-          const blob = await response.blob()
-          const base64 = await convertBlobToBase64(blob)
-
-          setWorkspaceImages(prev => [
-            ...prev,
-            {
-              workspaceId: workspace.id,
-              path: workspace.image_path,
-              base64: base64,
-              url: workspaceImageUrl
-            }
-          ])
-        }
-      }
-
-      return profile
-    }
-  }
-
   return (
     <ChatbotUIContext.Provider
       value={{
-        // PROFILE STORE
         profile,
         setProfile,
 
-        // ITEMS STORE
         assistants,
         setAssistants,
         collections,
@@ -223,10 +186,14 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
         setPrompts,
         tools,
         setTools,
+
         workspaces,
         setWorkspaces,
+        selectedWorkspace,
+        setSelectedWorkspace,
+        workspaceImages,
+        setWorkspaceImages,
 
-        // MODELS STORE
         envKeyMap,
         setEnvKeyMap,
         availableHostedModels,
@@ -236,17 +203,8 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
         availableOpenRouterModels,
         setAvailableOpenRouterModels,
 
-        // WORKSPACE STORE
-        selectedWorkspace,
-        setSelectedWorkspace,
-        workspaceImages,
-        setWorkspaceImages,
-
-        // PRESET STORE
         selectedPreset,
         setSelectedPreset,
-
-        // ASSISTANT STORE
         selectedAssistant,
         setSelectedAssistant,
         assistantImages,
@@ -254,7 +212,6 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
         openaiAssistants,
         setOpenaiAssistants,
 
-        // PASSIVE CHAT STORE
         userInput,
         setUserInput,
         chatMessages,
@@ -266,7 +223,6 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
         chatFileItems,
         setChatFileItems,
 
-        // ACTIVE CHAT STORE
         isGenerating,
         setIsGenerating,
         firstTokenReceived,
@@ -274,7 +230,6 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
         abortController,
         setAbortController,
 
-        // CHAT INPUT COMMAND STORE
         isPromptPickerOpen,
         setIsPromptPickerOpen,
         slashCommand,
@@ -300,7 +255,6 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
         isAssistantPickerOpen,
         setIsAssistantPickerOpen,
 
-        // ATTACHMENT STORE
         chatFiles,
         setChatFiles,
         chatImages,
@@ -312,13 +266,11 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
         showFilesDisplay,
         setShowFilesDisplay,
 
-        // RETRIEVAL STORE
         useRetrieval,
         setUseRetrieval,
         sourceCount,
         setSourceCount,
 
-        // TOOL STORE
         selectedTools,
         setSelectedTools,
         toolInUse,
