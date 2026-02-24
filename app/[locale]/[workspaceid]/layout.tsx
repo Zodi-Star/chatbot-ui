@@ -91,11 +91,9 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
   const fetchWorkspaceData = async (workspaceId: string) => {
     setLoading(true)
 
-    const workspace = await getWorkspaceById(workspaceId)
-    setSelectedWorkspace(workspace)
-
-    const assistantData = await getAssistantWorkspacesByWorkspaceId(workspaceId)
-    setAssistants(assistantData.assistants)
+// Workspace system disabled for MVP
+setSelectedWorkspace(null)
+setAssistants([])
 
     for (const assistant of assistantData.assistants) {
       let url = ""
