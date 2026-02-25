@@ -47,7 +47,6 @@ export const SidebarCreateItem: FC<SidebarCreateItemProps> = ({
   isTyping
 }) => {
   const {
-    selectedWorkspace,
     setChats,
     setPresets,
     setPrompts,
@@ -60,40 +59,24 @@ export const SidebarCreateItem: FC<SidebarCreateItemProps> = ({
   } = useContext(ChatbotUIContext)
 
   const buttonRef = useRef<HTMLButtonElement>(null)
-
   const [creating, setCreating] = useState(false)
 
   const createFunctions = {
     chats: createChat,
     presets: createPreset,
     prompts: createPrompt,
-    files: async (
-      createState: { file: File } & TablesInsert<"files">,
-      workspaceId: string
-    ) => {
-      if (!selectedWorkspace) return
-
+    files: async (createState: { file: File } & TablesInsert<"files">) => {
       const { file, ...rest } = createState
-
-      const createdFile = await createFileBasedOnExtension(
-        file,
-        rest,
-        workspaceId,
-        selectedWorkspace.embeddings_provider as "openai" | "local"
-      )
-
-      return createdFile
+      return await createFileBasedOnExtension(file, rest)
     },
     collections: async (
       createState: {
         image: File
         collectionFiles: TablesInsert<"collection_files">[]
-      } & Tables<"collections">,
-      workspaceId: string
+      } & Tables<"collections">
     ) => {
       const { collectionFiles, ...rest } = createState
-
-      const createdCollection = await createCollection(rest, workspaceId)
+      const createdCollection = await createCollection(rest)
 
       const finalCollectionFiles = collectionFiles.map(collectionFile => ({
         ...collectionFile,
@@ -101,7 +84,6 @@ export const SidebarCreateItem: FC<SidebarCreateItemProps> = ({
       }))
 
       await createCollectionFiles(finalCollectionFiles)
-
       return createdCollection
     },
     assistants: async (
@@ -110,13 +92,11 @@ export const SidebarCreateItem: FC<SidebarCreateItemProps> = ({
         files: Tables<"files">[]
         collections: Tables<"collections">[]
         tools: Tables<"tools">[]
-      } & Tables<"assistants">,
-      workspaceId: string
+      } & Tables<"assistants">
     ) => {
       const { image, files, collections, tools, ...rest } = createState
 
-      const createdAssistant = await createAssistant(rest, workspaceId)
-
+      const createdAssistant = await createAssistant(rest)
       let updatedAssistant = createdAssistant
 
       if (image) {
@@ -186,8 +166,7 @@ export const SidebarCreateItem: FC<SidebarCreateItemProps> = ({
 
   const handleCreate = async () => {
     try {
-      if (!selectedWorkspace) return
-      if (isTyping) return // Prevent creation while typing
+      if (isTyping) return
 
       const createFunction = createFunctions[contentType]
       const setStateFunction = stateUpdateFunctions[contentType]
@@ -196,7 +175,7 @@ export const SidebarCreateItem: FC<SidebarCreateItemProps> = ({
 
       setCreating(true)
 
-      const newItem = await createFunction(createState, selectedWorkspace.id)
+      const newItem = await createFunction(createState)
 
       setStateFunction((prevItems: any) => [...prevItems, newItem])
 
