@@ -65,10 +65,9 @@ export const SidebarCreateItem: FC<SidebarCreateItemProps> = ({
     chats: createChat,
     presets: createPreset,
     prompts: createPrompt,
-    files: async (createState: { file: File } & TablesInsert<"files">) => {
-      const { file, ...rest } = createState
-      return await createFileBasedOnExtension(file, rest)
-    },
+    files: async () => {
+  throw new Error("File uploads are disabled in workspace-free mode.")
+},
     collections: async (
       createState: {
         image: File
