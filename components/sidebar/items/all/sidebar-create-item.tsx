@@ -150,27 +150,29 @@ export const SidebarCreateItem: FC<SidebarCreateItemProps> = ({
   }
 
   const handleCreate = async () => {
-    try {
-      if (isTyping) return
+  try {
+    if (isTyping) return
 
-      const createFunction = createFunctions[contentType]
-      const setStateFunction = stateUpdateFunctions[contentType]
-
-      if (!createFunction || !setStateFunction) return
-
-      setCreating(true)
-
-      const newItem = await createFunction(createState)
-
-      setStateFunction((prevItems: any) => [...prevItems, newItem])
-
-      onOpenChange(false)
-      setCreating(false)
-    } catch (error) {
-      toast.error(`Error creating ${contentType.slice(0, -1)}. ${error}.`)
-      setCreating(false)
+    if (contentType !== "assistants") {
+      toast.error("Only assistant creation is supported in workspace-free mode.")
+      return
     }
+
+    setCreating(true)
+
+    const { image, files, collections, tools, ...rest } = createState
+
+    const createdAssistant = await createAssistant(rest)
+
+    setAssistants((prev: any) => [...prev, createdAssistant])
+
+    onOpenChange(false)
+    setCreating(false)
+  } catch (error) {
+    toast.error(`Error creating assistant. ${error}.`)
+    setCreating(false)
   }
+}
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (!isTyping && e.key === "Enter" && !e.shiftKey) {
