@@ -68,23 +68,9 @@ export const SidebarCreateItem: FC<SidebarCreateItemProps> = ({
     files: async () => {
   throw new Error("File uploads are disabled in workspace-free mode.")
 },
-    collections: async (
-      createState: {
-        image: File
-        collectionFiles: TablesInsert<"collection_files">[]
-      } & Tables<"collections">
-    ) => {
-      const { collectionFiles, ...rest } = createState
-      const createdCollection = await createCollection(rest)
-
-      const finalCollectionFiles = collectionFiles.map(collectionFile => ({
-        ...collectionFile,
-        collection_id: createdCollection.id
-      }))
-
-      await createCollectionFiles(finalCollectionFiles)
-      return createdCollection
-    },
+    collections: async () => {
+  throw new Error("Collections are disabled in workspace-free mode.")
+},
     assistants: async (
       createState: {
         image: File
