@@ -1,5 +1,4 @@
 import { ChatbotUIContext } from "@/context/context"
-import { createAssistants } from "@/db/assistants"
 import { createChats } from "@/db/chats"
 import { createCollections } from "@/db/collections"
 import { createFiles } from "@/db/files"
