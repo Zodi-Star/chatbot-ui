@@ -190,8 +190,6 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
         setWorkspaces,
         selectedWorkspace,
         setSelectedWorkspace,
-        workspaceImages,
-        setWorkspaceImages,
 
         envKeyMap,
         setEnvKeyMap,
