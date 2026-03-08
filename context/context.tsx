@@ -6,7 +6,6 @@ import {
   LLM,
   MessageImage,
   OpenRouterLLM,
-  WorkspaceImage
 } from "@/types"
 import { AssistantImage } from "@/types/images/assistant-image"
 import { VALID_ENV_KEYS } from "@/types/valid-keys"
@@ -52,8 +51,6 @@ interface ChatbotUIContext {
   // WORKSPACE STORE
   selectedWorkspace: Tables<"workspaces"> | null
   setSelectedWorkspace: Dispatch<SetStateAction<Tables<"workspaces"> | null>>
-  workspaceImages: WorkspaceImage[]
-  setWorkspaceImages: Dispatch<SetStateAction<WorkspaceImage[]>>
 
   // PRESET STORE
   selectedPreset: Tables<"presets"> | null
