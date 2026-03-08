@@ -46,7 +46,6 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
   // Workspace placeholders (kept for compatibility, not used)
   const [workspaces, setWorkspaces] = useState<any[]>([])
   const [selectedWorkspace, setSelectedWorkspace] = useState<any>(null)
-  const [workspaceImages, setWorkspaceImages] = useState<any[]>([])
 
   // MODELS STORE
   const [envKeyMap, setEnvKeyMap] = useState<Record<string, VALID_ENV_KEYS>>({})
