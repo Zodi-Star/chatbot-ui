@@ -175,8 +175,6 @@ export const ChatbotUIContext = createContext<ChatbotUIContext>({
   // WORKSPACE STORE
   selectedWorkspace: null,
   setSelectedWorkspace: () => {},
-  workspaceImages: [],
-  setWorkspaceImages: () => {},
 
   // PRESET STORE
   selectedPreset: null,
