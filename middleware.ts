@@ -17,46 +17,25 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  const isLocalizedLogin =
-    pathname === `/${FIXED_LOCALE}/login` ||
-    pathname.startsWith(`/${FIXED_LOCALE}/login?`)
-
-  const isLocalizedSignup =
-    pathname === `/${FIXED_LOCALE}/signup` ||
-    pathname.startsWith(`/${FIXED_LOCALE}/signup?`)
-
-  const isLocalizedResetPassword =
-    pathname === `/${FIXED_LOCALE}/reset-password` ||
-    pathname.startsWith(`/${FIXED_LOCALE}/reset-password?`)
-
   const isAuthRoute =
-    isLocalizedLogin || isLocalizedSignup || isLocalizedResetPassword
+    pathname === `/${FIXED_LOCALE}/login` ||
+    pathname === `/${FIXED_LOCALE}/signup` ||
+    pathname === `/${FIXED_LOCALE}/reset-password` ||
+    pathname.startsWith(`/${FIXED_LOCALE}/login/`)
 
   const isRoot = pathname === "/"
   const isPlainChat = pathname === "/chat"
+  const isLocalizedRoot = pathname === `/${FIXED_LOCALE}`
 
-  // Not logged in → force localized login
   if (!session && !isAuthRoute) {
     return NextResponse.redirect(
       new URL(`/${FIXED_LOCALE}/login`, request.url)
     )
   }
 
-  // Logged in at root or /chat → send to the user's real home workspace
-  if (session && (isRoot || isPlainChat)) {
-    const { data: homeWorkspace, error } = await supabase
-      .from("workspaces")
-      .select("id")
-      .eq("user_id", session.user.id)
-      .eq("is_home", true)
-      .single()
-
-    if (!homeWorkspace) {
-      throw new Error(error?.message || "Home workspace not found")
-    }
-
+  if (session && (isRoot || isPlainChat || isLocalizedRoot)) {
     return NextResponse.redirect(
-      new URL(`/${FIXED_LOCALE}/${homeWorkspace.id}/chat`, request.url)
+      new URL(`/${FIXED_LOCALE}/chat`, request.url)
     )
   }
 
