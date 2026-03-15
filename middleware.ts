@@ -4,7 +4,6 @@ import { NextResponse, type NextRequest } from "next/server"
 import i18nConfig from "./i18nConfig"
 
 const FIXED_LOCALE = "en"
-const FIXED_WORKSPACE = "zodistar"
 
 export async function middleware(request: NextRequest) {
   const i18nResult = i18nRouter(request, i18nConfig)
@@ -18,30 +17,46 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
+  const isLocalizedLogin =
+    pathname === `/${FIXED_LOCALE}/login` ||
+    pathname.startsWith(`/${FIXED_LOCALE}/login?`)
+
+  const isLocalizedSignup =
+    pathname === `/${FIXED_LOCALE}/signup` ||
+    pathname.startsWith(`/${FIXED_LOCALE}/signup?`)
+
+  const isLocalizedResetPassword =
+    pathname === `/${FIXED_LOCALE}/reset-password` ||
+    pathname.startsWith(`/${FIXED_LOCALE}/reset-password?`)
+
   const isAuthRoute =
-  pathname.startsWith("/login") ||
-  pathname.startsWith("/signup") ||
-  pathname.startsWith("/reset-password")
-  
+    isLocalizedLogin || isLocalizedSignup || isLocalizedResetPassword
+
   const isRoot = pathname === "/"
   const isPlainChat = pathname === "/chat"
 
-  // 🔒 Not logged in → force login
+  // Not logged in → force localized login
   if (!session && !isAuthRoute) {
-    return NextResponse.redirect(new URL("/auth/login", request.url))
-  }
-
-  // ✅ Logged in at root → force fixed workspace chat
-  if (session && isRoot) {
     return NextResponse.redirect(
-      new URL(`/${FIXED_LOCALE}/${FIXED_WORKSPACE}/chat`, request.url)
+      new URL(`/${FIXED_LOCALE}/login`, request.url)
     )
   }
 
-  // ✅ Logged in hitting /chat directly → rewrite to fixed workspace
-  if (session && isPlainChat) {
+  // Logged in at root or /chat → send to the user's real home workspace
+  if (session && (isRoot || isPlainChat)) {
+    const { data: homeWorkspace, error } = await supabase
+      .from("workspaces")
+      .select("id")
+      .eq("user_id", session.user.id)
+      .eq("is_home", true)
+      .single()
+
+    if (!homeWorkspace) {
+      throw new Error(error?.message || "Home workspace not found")
+    }
+
     return NextResponse.redirect(
-      new URL(`/${FIXED_LOCALE}/${FIXED_WORKSPACE}/chat`, request.url)
+      new URL(`/${FIXED_LOCALE}/${homeWorkspace.id}/chat`, request.url)
     )
   }
 
