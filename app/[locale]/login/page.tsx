@@ -33,21 +33,11 @@ export default async function Login({
       }
     }
   )
+
   const session = (await supabase.auth.getSession()).data.session
 
   if (session) {
-    const { data: homeWorkspace, error } = await supabase
-      .from("workspaces")
-      .select("*")
-      .eq("user_id", session.user.id)
-      .eq("is_home", true)
-      .single()
-
-    if (!homeWorkspace) {
-      throw new Error(error?.message || "Home workspace not found")
-    }
-
-    return redirect(`/${LOCALE}/${homeWorkspace.id}/chat`)
+    return redirect(`/${LOCALE}/chat`)
   }
 
   const signIn = async (formData: FormData) => {
@@ -58,29 +48,18 @@ export default async function Login({
     const cookieStore = cookies()
     const supabase = createClient(cookieStore)
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password
     })
 
     if (error) {
-      return redirect(`/${LOCALE}/login?message=${encodeURIComponent(error.message)}`)
-    }
-
-    const { data: homeWorkspace, error: homeWorkspaceError } = await supabase
-      .from("workspaces")
-      .select("*")
-      .eq("user_id", data.user.id)
-      .eq("is_home", true)
-      .single()
-
-    if (!homeWorkspace) {
-      throw new Error(
-        homeWorkspaceError?.message || "An unexpected error occurred"
+      return redirect(
+        `/${LOCALE}/login?message=${encodeURIComponent(error.message)}`
       )
     }
 
-    return redirect(`/${LOCALE}/${homeWorkspace.id}/chat`)
+    return redirect(`/${LOCALE}/chat`)
   }
 
   const getEnvVarOrEdgeConfigValue = async (name: string) => {
@@ -138,10 +117,12 @@ export default async function Login({
 
     if (error) {
       console.error(error)
-      return redirect(`/${LOCALE}/login?message=${encodeURIComponent(error.message)}`)
+      return redirect(
+        `/${LOCALE}/login?message=${encodeURIComponent(error.message)}`
+      )
     }
 
-    return redirect("/setup")
+    return redirect(`/${LOCALE}/setup`)
   }
 
   const handleResetPassword = async (formData: FormData) => {
@@ -157,7 +138,9 @@ export default async function Login({
     })
 
     if (error) {
-      return redirect(`/${LOCALE}/login?message=${encodeURIComponent(error.message)}`)
+      return redirect(
+        `/${LOCALE}/login?message=${encodeURIComponent(error.message)}`
+      )
     }
 
     return redirect(
