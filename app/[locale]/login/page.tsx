@@ -14,6 +14,8 @@ export const metadata: Metadata = {
   title: "Login"
 }
 
+const LOCALE = "en"
+
 export default async function Login({
   searchParams
 }: {
@@ -42,10 +44,10 @@ export default async function Login({
       .single()
 
     if (!homeWorkspace) {
-      throw new Error(error.message)
+      throw new Error(error?.message || "Home workspace not found")
     }
 
-    return redirect(`/${homeWorkspace.id}/chat`)
+    return redirect(`/${LOCALE}/${homeWorkspace.id}/chat`)
   }
 
   const signIn = async (formData: FormData) => {
@@ -62,7 +64,7 @@ export default async function Login({
     })
 
     if (error) {
-      return redirect(`/login?message=${error.message}`)
+      return redirect(`/${LOCALE}/login?message=${encodeURIComponent(error.message)}`)
     }
 
     const { data: homeWorkspace, error: homeWorkspaceError } = await supabase
@@ -78,11 +80,12 @@ export default async function Login({
       )
     }
 
-    return redirect(`/${homeWorkspace.id}/chat`)
+    return redirect(`/${LOCALE}/${homeWorkspace.id}/chat`)
   }
 
   const getEnvVarOrEdgeConfigValue = async (name: string) => {
     "use server"
+
     if (process.env.EDGE_CONFIG) {
       return await get<string>(name)
     }
@@ -100,21 +103,24 @@ export default async function Login({
       "EMAIL_DOMAIN_WHITELIST"
     )
     const emailDomainWhitelist = emailDomainWhitelistPatternsString?.trim()
-      ? emailDomainWhitelistPatternsString?.split(",")
+      ? emailDomainWhitelistPatternsString.split(",")
       : []
+
     const emailWhitelistPatternsString =
       await getEnvVarOrEdgeConfigValue("EMAIL_WHITELIST")
     const emailWhitelist = emailWhitelistPatternsString?.trim()
-      ? emailWhitelistPatternsString?.split(",")
+      ? emailWhitelistPatternsString.split(",")
       : []
 
-    // If there are whitelist patterns, check if the email is allowed to sign up
     if (emailDomainWhitelist.length > 0 || emailWhitelist.length > 0) {
-      const domainMatch = emailDomainWhitelist?.includes(email.split("@")[1])
-      const emailMatch = emailWhitelist?.includes(email)
+      const domainMatch = emailDomainWhitelist.includes(email.split("@")[1])
+      const emailMatch = emailWhitelist.includes(email)
+
       if (!domainMatch && !emailMatch) {
         return redirect(
-          `/login?message=Email ${email} is not allowed to sign up.`
+          `/${LOCALE}/login?message=${encodeURIComponent(
+            `Email ${email} is not allowed to sign up.`
+          )}`
         )
       }
     }
@@ -126,20 +132,16 @@ export default async function Login({
       email,
       password,
       options: {
-        // USE IF YOU WANT TO SEND EMAIL VERIFICATION, ALSO CHANGE TOML FILE
         // emailRedirectTo: `${origin}/auth/callback`
       }
     })
 
     if (error) {
       console.error(error)
-      return redirect(`/login?message=${error.message}`)
+      return redirect(`/${LOCALE}/login?message=${encodeURIComponent(error.message)}`)
     }
 
     return redirect("/setup")
-
-    // USE IF YOU WANT TO SEND EMAIL VERIFICATION, ALSO CHANGE TOML FILE
-    // return redirect("/login?message=Check email to continue sign in process")
   }
 
   const handleResetPassword = async (formData: FormData) => {
@@ -155,10 +157,14 @@ export default async function Login({
     })
 
     if (error) {
-      return redirect(`/login?message=${error.message}`)
+      return redirect(`/${LOCALE}/login?message=${encodeURIComponent(error.message)}`)
     }
 
-    return redirect("/login?message=Check email to reset password")
+    return redirect(
+      `/${LOCALE}/login?message=${encodeURIComponent(
+        "Check email to reset password"
+      )}`
+    )
   }
 
   return (
