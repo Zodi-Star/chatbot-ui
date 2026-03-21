@@ -261,18 +261,21 @@ export const ChatInput: FC<ChatInputProps> = ({}) => {
               size={30}
             />
           ) : (
-            <IconSend
-              className={cn(
-                "bg-primary text-secondary rounded p-1",
-                !userInput && "cursor-not-allowed opacity-50"
-              )}
-              onClick={() => {
-                if (!userInput) return
+            <button
+  type="button"
+  className={cn(
+    "rounded",
+    !userInput && "cursor-not-allowed opacity-50"
+  )}
+  onClick={() => {
+    if (!userInput.trim()) return
 
-                handleSendMessage(userInput, chatMessages, false)
-              }}
-              size={30}
-            />
+    handleSendMessage(userInput, chatMessages, false)
+  }}
+  disabled={!userInput.trim()}
+>
+  <IconSend className="bg-primary text-secondary rounded p-1" size={30} />
+</button>
           )}
         </div>
       </div>
