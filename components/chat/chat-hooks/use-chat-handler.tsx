@@ -66,9 +66,7 @@ export const useChatHandler = () => {
     models,
     isPromptPickerOpen,
     isFilePickerOpen,
-    isToolPickerOpen,
-    handlePaste,
-    setIsTyping
+    isToolPickerOpen
   } = useContext(ChatbotUIContext)
 
   const chatInputRef = useRef<HTMLTextAreaElement>(null)
@@ -419,8 +417,6 @@ export const useChatHandler = () => {
     chatInputRef,
     handleInputChange,
     handleKeyDown,
-    handlePaste,
-    setIsTyping,
     handleNewChat,
     handleSendMessage,
     handleFocusChatInput,
