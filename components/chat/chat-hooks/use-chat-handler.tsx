@@ -9,7 +9,7 @@ import { buildFinalMessages } from "@/lib/build-prompt"
 import { Tables } from "@/supabase/types"
 import { ChatMessage, ChatPayload, LLMID, ModelProvider } from "@/types"
 import { useRouter } from "next/navigation"
-import { useContext, useEffect, useRef } from "react"
+import { KeyboardEvent, useContext, useEffect, useRef } from "react"
 import { LLM_LIST } from "../../../lib/models/llm/llm-list"
 import {
   createTempMessages,
@@ -66,7 +66,9 @@ export const useChatHandler = () => {
     models,
     isPromptPickerOpen,
     isFilePickerOpen,
-    isToolPickerOpen
+    isToolPickerOpen,
+    handlePaste,
+    setIsTyping
   } = useContext(ChatbotUIContext)
 
   const chatInputRef = useRef<HTMLTextAreaElement>(null)
@@ -119,15 +121,18 @@ export const useChatHandler = () => {
         await getAssistantFilesByAssistantId(selectedAssistant.id)
       ).files
       allFiles = [...assistantFiles]
+
       const assistantCollections = (
         await getAssistantCollectionsByAssistantId(selectedAssistant.id)
       ).collections
+
       for (const collection of assistantCollections) {
         const collectionFiles = (
           await getCollectionFilesByCollectionId(collection.id)
         ).files
         allFiles = [...allFiles, ...collectionFiles]
       }
+
       const assistantTools = (
         await getAssistantToolsByAssistantId(selectedAssistant.id)
       ).tools
@@ -156,23 +161,6 @@ export const useChatHandler = () => {
           | "openai"
           | "local"
       })
-    } else if (selectedWorkspace) {
-      // setChatSettings({
-      //   model: (selectedWorkspace.default_model ||
-      //     "gpt-4-1106-preview") as LLMID,
-      //   prompt:
-      //     selectedWorkspace.default_prompt ||
-      //     "You are a friendly, helpful AI assistant.",
-      //   temperature: selectedWorkspace.default_temperature || 0.5,
-      //   contextLength: selectedWorkspace.default_context_length || 4096,
-      //   includeProfileContext:
-      //     selectedWorkspace.include_profile_context || true,
-      //   includeWorkspaceInstructions:
-      //     selectedWorkspace.include_workspace_instructions || true,
-      //   embeddingsProvider:
-      //     (selectedWorkspace.embeddings_provider as "openai" | "local") ||
-      //     "openai"
-      // })
     }
 
     return router.push(`/${selectedWorkspace.id}/chat`)
@@ -186,6 +174,23 @@ export const useChatHandler = () => {
     if (abortController) {
       abortController.abort()
     }
+  }
+
+  const handleInputChange = (value: string) => {
+    setUserInput(value)
+  }
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key !== "Enter") return
+    if (e.shiftKey) return
+    if (isPromptPickerOpen || isFilePickerOpen || isToolPickerOpen) return
+
+    e.preventDefault()
+
+    if (!userInput.trim()) return
+    if (!selectedWorkspace || !profile || !chatSettings) return
+
+    handleSendMessage(userInput, chatMessages, false)
   }
 
   const handleSendMessage = async (
@@ -240,7 +245,7 @@ export const useChatHandler = () => {
         setToolInUse("retrieval")
 
         retrievedFileItems = await handleRetrieval(
-          userInput,
+          messageContent,
           newMessageFiles,
           chatFiles,
           chatSettings!.embeddingsProvider,
@@ -259,7 +264,7 @@ export const useChatHandler = () => {
           selectedAssistant
         )
 
-      let payload: ChatPayload = {
+      const payload: ChatPayload = {
         chatSettings: chatSettings!,
         workspaceInstructions: selectedWorkspace!.instructions || "",
         chatMessages: isRegeneration
@@ -412,7 +417,10 @@ export const useChatHandler = () => {
 
   return {
     chatInputRef,
-    prompt,
+    handleInputChange,
+    handleKeyDown,
+    handlePaste,
+    setIsTyping,
     handleNewChat,
     handleSendMessage,
     handleFocusChatInput,
