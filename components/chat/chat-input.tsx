@@ -24,13 +24,7 @@ import { useSelectFileHandler } from "./chat-hooks/use-select-file-handler"
 interface ChatInputProps {}
 
 export const ChatInput: FC<ChatInputProps> = ({}) => {
-  
   const { t } = useTranslation()
-
-  useHotkey("l", () => {
-    handleFocusChatInput()
-  })
-
   const [isTyping, setIsTyping] = useState<boolean>(false)
 
   const {
@@ -66,7 +60,6 @@ export const ChatInput: FC<ChatInputProps> = ({}) => {
   } = useChatHandler()
 
   const { handleInputChange } = usePromptAndCommand()
-
   const { filesToAccept, handleSelectDeviceFile } = useSelectFileHandler()
 
   const {
@@ -76,11 +69,15 @@ export const ChatInput: FC<ChatInputProps> = ({}) => {
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  useHotkey("l", () => {
+    handleFocusChatInput()
+  })
+
   useEffect(() => {
     setTimeout(() => {
       handleFocusChatInput()
-    }, 200) // FIX: hacky
-  }, [selectedPreset, selectedAssistant])
+    }, 200)
+  }, [selectedPreset, selectedAssistant, handleFocusChatInput])
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (!isTyping && event.key === "Enter" && !event.shiftKey) {
@@ -89,7 +86,6 @@ export const ChatInput: FC<ChatInputProps> = ({}) => {
       handleSendMessage(userInput, chatMessages, false)
     }
 
-    // Consolidate conditions to avoid TypeScript error
     if (
       isPromptPickerOpen ||
       isFilePickerOpen ||
@@ -102,7 +98,7 @@ export const ChatInput: FC<ChatInputProps> = ({}) => {
         event.key === "ArrowDown"
       ) {
         event.preventDefault()
-        // Toggle focus based on picker type
+
         if (isPromptPickerOpen) setFocusPrompt(!focusPrompt)
         if (isFilePickerOpen) setFocusFile(!focusFile)
         if (isToolPickerOpen) setFocusTool(!focusTool)
@@ -110,17 +106,6 @@ export const ChatInput: FC<ChatInputProps> = ({}) => {
       }
     }
 
-    if (event.key === "ArrowUp" && event.shiftKey && event.ctrlKey) {
-      event.preventDefault()
-      setNewMessageContentToPreviousUserMessage()
-    }
-
-    if (event.key === "ArrowDown" && event.shiftKey && event.ctrlKey) {
-      event.preventDefault()
-      setNewMessageContentToNextUserMessage()
-    }
-
-    //use shift+ctrl+up and shift+ctrl+down to navigate through chat history
     if (event.key === "ArrowUp" && event.shiftKey && event.ctrlKey) {
       event.preventDefault()
       setNewMessageContentToPreviousUserMessage()
@@ -148,24 +133,25 @@ export const ChatInput: FC<ChatInputProps> = ({}) => {
     )?.imageInput
 
     const items = event.clipboardData.items
+
     for (const item of items) {
       if (item.type.indexOf("image") === 0) {
         if (!imagesAllowed) {
           toast.error(
-            `Images are not supported for this model. Use models like GPT-4 Vision instead.`
+            "Images are not supported for this model. Use models like GPT-4 Vision instead."
           )
-          
           return
         }
+
         const file = item.getAsFile()
         if (!file) return
+
         handleSelectDeviceFile(file)
       }
     }
   }
-}
-  return (
 
+  return (
     <>
       <div className="flex flex-col flex-wrap justify-center gap-2">
         <ChatFilesDisplay />
@@ -185,7 +171,6 @@ export const ChatInput: FC<ChatInputProps> = ({}) => {
             >
               <div className="flex cursor-pointer items-center justify-center space-x-1 rounded-lg bg-purple-600 px-3 py-1 hover:opacity-50">
                 <IconBolt size={20} />
-
                 <div>{tool.name}</div>
               </div>
             </div>
@@ -199,7 +184,7 @@ export const ChatInput: FC<ChatInputProps> = ({}) => {
                 src={
                   assistantImages.find(
                     img => img.path === selectedAssistant.image_path
-                  )?.base64
+                  )?.base64 || ""
                 }
                 width={28}
                 height={28}
@@ -226,7 +211,6 @@ export const ChatInput: FC<ChatInputProps> = ({}) => {
             onClick={() => fileInputRef.current?.click()}
           />
 
-          {/* Hidden input to select files from device */}
           <Input
             ref={fileInputRef}
             className="hidden"
@@ -242,10 +226,7 @@ export const ChatInput: FC<ChatInputProps> = ({}) => {
         <TextareaAutosize
           textareaRef={chatInputRef}
           className="ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring text-md flex w-full resize-none rounded-md border-none bg-transparent px-14 py-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-          placeholder={t(
-            // `Ask anything. Type "@" for assistants, "/" for prompts, "#" for files, and "!" for tools.`
-            `Ask anything. Type @  /  #  !`
-          )}
+          placeholder={t(`Ask anything. Type @  /  #  !`)}
           onValueChange={handleInputChange}
           value={userInput}
           minRows={1}
@@ -265,20 +246,23 @@ export const ChatInput: FC<ChatInputProps> = ({}) => {
             />
           ) : (
             <button
-  type="button"
-  className={cn(
-    "rounded",
-    !userInput && "cursor-not-allowed opacity-50"
-  )}
-  onClick={() => {
-    console.log("send button clicked")
-    if (!userInput.trim()) return
-    handleSendMessage(userInput, chatMessages, false)
-  }}
-  disabled={!userInput.trim()}
->
-  <IconSend className="pointer-events-none bg-primary text-secondary rounded p-1" size={30} />
-</button>
+              type="button"
+              className={cn(
+                "rounded",
+                !userInput.trim() && "cursor-not-allowed opacity-50"
+              )}
+              onClick={() => {
+                console.log("send button clicked")
+                if (!userInput.trim()) return
+                handleSendMessage(userInput, chatMessages, false)
+              }}
+              disabled={!userInput.trim()}
+            >
+              <IconSend
+                className="pointer-events-none bg-primary text-secondary rounded p-1"
+                size={30}
+              />
+            </button>
           )}
         </div>
       </div>
