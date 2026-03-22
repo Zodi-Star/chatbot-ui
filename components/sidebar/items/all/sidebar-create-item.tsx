@@ -66,11 +66,11 @@ export const SidebarCreateItem: FC<SidebarCreateItemProps> = ({
     presets: createPreset,
     prompts: createPrompt,
     files: async () => {
-  throw new Error("File uploads are disabled in workspace-free mode.")
-},
+      throw new Error("File uploads are disabled in workspace-free mode.")
+    },
     collections: async () => {
-  throw new Error("Collections are disabled in workspace-free mode.")
-},
+      throw new Error("Collections are disabled in workspace-free mode.")
+    },
     assistants: async (
       createState: {
         image: File
@@ -150,29 +150,31 @@ export const SidebarCreateItem: FC<SidebarCreateItemProps> = ({
   }
 
   const handleCreate = async () => {
-  try {
-    if (isTyping) return
+    try {
+      if (isTyping) return
 
-    if (contentType !== "assistants") {
-      toast.error("Only assistant creation is supported in workspace-free mode.")
-      return
+      if (contentType !== "assistants") {
+        toast.error(
+          "Only assistant creation is supported in workspace-free mode."
+        )
+        return
+      }
+
+      setCreating(true)
+
+      const { image, files, collections, tools, ...rest } = createState
+
+      const createdAssistant = await createAssistant(rest)
+
+      setAssistants((prev: any) => [...prev, createdAssistant])
+
+      onOpenChange(false)
+      setCreating(false)
+    } catch (error) {
+      toast.error(`Error creating assistant. ${error}.`)
+      setCreating(false)
     }
-
-    setCreating(true)
-
-    const { image, files, collections, tools, ...rest } = createState
-
-    const createdAssistant = await createAssistant(rest)
-
-    setAssistants((prev: any) => [...prev, createdAssistant])
-
-    onOpenChange(false)
-    setCreating(false)
-  } catch (error) {
-    toast.error(`Error creating assistant. ${error}.`)
-    setCreating(false)
   }
-}
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (!isTyping && e.key === "Enter" && !e.shiftKey) {

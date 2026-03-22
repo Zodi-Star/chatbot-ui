@@ -5,7 +5,7 @@ import {
   ChatSettings,
   LLM,
   MessageImage,
-  OpenRouterLLM,
+  OpenRouterLLM
 } from "@/types"
 import { AssistantImage } from "@/types/images/assistant-image"
 import { VALID_ENV_KEYS } from "@/types/valid-keys"
@@ -160,13 +160,13 @@ export const ChatbotUIContext = createContext<ChatbotUIContext>({
   tools: [],
   setTools: () => {},
   workspaces: [
-  {
-    id: "default-workspace",
-    name: "Default Workspace",
-    is_home: true
-  } as any
-],
-setWorkspaces: () => {},
+    {
+      id: "default-workspace",
+      name: "Default Workspace",
+      is_home: true
+    } as any
+  ],
+  setWorkspaces: () => {},
 
   // MODELS STORE
   envKeyMap: {},
@@ -180,11 +180,11 @@ setWorkspaces: () => {},
 
   // WORKSPACE STORE
   selectedWorkspace: {
-  id: "default-workspace",
-  name: "Default Workspace",
-  is_home: true
-} as any,
-setSelectedWorkspace: () => {},
+    id: "default-workspace",
+    name: "Default Workspace",
+    is_home: true
+  } as any,
+  setSelectedWorkspace: () => {},
 
   // PRESET STORE
   selectedPreset: null,

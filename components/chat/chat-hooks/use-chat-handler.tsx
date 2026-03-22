@@ -186,7 +186,7 @@ export const useChatHandler = () => {
     e.preventDefault()
 
     if (!userInput.trim()) return
-    if (!selectedWorkspace || !profile || !chatSettings) return
+    if (!profile || !chatSettings) return
 
     handleSendMessage(userInput, chatMessages, false)
   }
@@ -236,11 +236,19 @@ export const useChatHandler = () => {
         ...availableOpenRouterModels
       ].find(llm => llm.modelId === chatSettings?.model)
 
+      const workspace =
+        selectedWorkspace ??
+        ({
+          id: "default-workspace",
+          name: "Default Workspace",
+          instructions: ""
+        } as any)
+
       validateChatSettings(
         chatSettings,
         modelData,
         profile,
-        selectedWorkspace,
+        workspace,
         messageContent
       )
 
@@ -287,7 +295,7 @@ export const useChatHandler = () => {
 
       const payload: ChatPayload = {
         chatSettings: chatSettings!,
-        workspaceInstructions: selectedWorkspace!.instructions || "",
+        workspaceInstructions: workspace.instructions || "",
         chatMessages: isRegeneration
           ? [...currentChatMessages]
           : [...currentChatMessages, tempUserChatMessage],
@@ -368,7 +376,7 @@ export const useChatHandler = () => {
         currentChat = await handleCreateChat(
           chatSettings!,
           profile!,
-          selectedWorkspace!,
+          workspace,
           messageContent,
           selectedAssistant!,
           newMessageFiles,

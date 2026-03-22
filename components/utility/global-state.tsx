@@ -51,8 +51,9 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
   const [envKeyMap, setEnvKeyMap] = useState<Record<string, VALID_ENV_KEYS>>({})
   const [availableHostedModels, setAvailableHostedModels] = useState<LLM[]>([])
   const [availableLocalModels, setAvailableLocalModels] = useState<LLM[]>([])
-  const [availableOpenRouterModels, setAvailableOpenRouterModels] =
-    useState<OpenRouterLLM[]>([])
+  const [availableOpenRouterModels, setAvailableOpenRouterModels] = useState<
+    OpenRouterLLM[]
+  >([])
 
   // PRESET STORE
   const [selectedPreset, setSelectedPreset] =
@@ -76,15 +77,12 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
     includeWorkspaceInstructions: false,
     embeddingsProvider: "openai"
   })
-  const [selectedChat, setSelectedChat] =
-    useState<Tables<"chats"> | null>(null)
-  const [chatFileItems, setChatFileItems] =
-    useState<Tables<"file_items">[]>([])
+  const [selectedChat, setSelectedChat] = useState<Tables<"chats"> | null>(null)
+  const [chatFileItems, setChatFileItems] = useState<Tables<"file_items">[]>([])
 
   // ACTIVE CHAT STORE
   const [isGenerating, setIsGenerating] = useState<boolean>(false)
-  const [firstTokenReceived, setFirstTokenReceived] =
-    useState<boolean>(false)
+  const [firstTokenReceived, setFirstTokenReceived] = useState<boolean>(false)
   const [abortController, setAbortController] =
     useState<AbortController | null>(null)
 
@@ -100,25 +98,21 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
   const [focusTool, setFocusTool] = useState(false)
   const [focusAssistant, setFocusAssistant] = useState(false)
   const [atCommand, setAtCommand] = useState("")
-  const [isAssistantPickerOpen, setIsAssistantPickerOpen] =
-    useState(false)
+  const [isAssistantPickerOpen, setIsAssistantPickerOpen] = useState(false)
 
   // ATTACHMENTS STORE
   const [chatFiles, setChatFiles] = useState<ChatFile[]>([])
   const [chatImages, setChatImages] = useState<MessageImage[]>([])
   const [newMessageFiles, setNewMessageFiles] = useState<ChatFile[]>([])
-  const [newMessageImages, setNewMessageImages] =
-    useState<MessageImage[]>([])
-  const [showFilesDisplay, setShowFilesDisplay] =
-    useState<boolean>(false)
+  const [newMessageImages, setNewMessageImages] = useState<MessageImage[]>([])
+  const [showFilesDisplay, setShowFilesDisplay] = useState<boolean>(false)
 
   // RETRIEVAL STORE
   const [useRetrieval, setUseRetrieval] = useState<boolean>(true)
   const [sourceCount, setSourceCount] = useState<number>(4)
 
   // TOOL STORE
-  const [selectedTools, setSelectedTools] =
-    useState<Tables<"tools">[]>([])
+  const [selectedTools, setSelectedTools] = useState<Tables<"tools">[]>([])
   const [toolInUse, setToolInUse] = useState<string>("none")
 
   useEffect(() => {

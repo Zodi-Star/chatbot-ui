@@ -84,11 +84,17 @@ export const SidebarUpdateItem: FC<SidebarUpdateItemProps> = ({
       return updateFile(fileId, state)
     },
 
-    collections: async (collectionId: string, state: TablesUpdate<"collections">) => {
+    collections: async (
+      collectionId: string,
+      state: TablesUpdate<"collections">
+    ) => {
       return updateCollection(collectionId, state)
     },
 
-    assistants: async (assistantId: string, state: TablesUpdate<"assistants">) => {
+    assistants: async (
+      assistantId: string,
+      state: TablesUpdate<"assistants">
+    ) => {
       // Single-tenant MVP: no workspace assignment / no assistant attachments here
       // Keep basic assistant updates working
       return updateAssistant(assistantId, state)
@@ -161,7 +167,9 @@ export const SidebarUpdateItem: FC<SidebarUpdateItemProps> = ({
             </SheetTitle>
           </SheetHeader>
 
-          <div className="mt-4 space-y-3">{renderInputs(renderState[contentType])}</div>
+          <div className="mt-4 space-y-3">
+            {renderInputs(renderState[contentType])}
+          </div>
         </div>
 
         <SheetFooter className="mt-2 flex justify-between">
