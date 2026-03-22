@@ -274,7 +274,7 @@ export const ChatInput: FC<ChatInputProps> = ({}) => {
   }}
   disabled={!userInput.trim()}
 >
-  <IconSend className="bg-primary text-secondary rounded p-1" size={30} />
+  <IconSend className="pointer-events-none bg-primary text-secondary rounded p-1" size={30} />
 </button>
           )}
         </div>
