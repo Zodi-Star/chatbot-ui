@@ -24,14 +24,7 @@ import { useSelectFileHandler } from "./chat-hooks/use-select-file-handler"
 interface ChatInputProps {}
 
 export const ChatInput: FC<ChatInputProps> = ({}) => {
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  if (!mounted) return null
-
+  
   const { t } = useTranslation()
 
   useHotkey("l", () => {
@@ -161,6 +154,7 @@ export const ChatInput: FC<ChatInputProps> = ({}) => {
           toast.error(
             `Images are not supported for this model. Use models like GPT-4 Vision instead.`
           )
+          
           return
         }
         const file = item.getAsFile()
@@ -170,7 +164,18 @@ export const ChatInput: FC<ChatInputProps> = ({}) => {
     }
   }
 
+const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) return null
+
   return (
+    // jsx
+  )
+}
     <>
       <div className="flex flex-col flex-wrap justify-center gap-2">
         <ChatFilesDisplay />
