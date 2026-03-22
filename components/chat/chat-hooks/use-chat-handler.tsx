@@ -193,13 +193,27 @@ export const useChatHandler = () => {
 
   const handleSendMessage = async (
     messageContent: string,
-    chatMessages: ChatMessage[],
+    currentChatMessages: ChatMessage[],
     isRegeneration: boolean
   ) => {
     const startingInput = messageContent
 
+    console.log("HSM start", {
+      messageContent,
+      chatMessagesLength: currentChatMessages.length,
+      isRegeneration
+    })
+
     try {
+      console.log("HSM before clear input", {
+        userInputBeforeClear: userInput,
+        startingInput
+      })
+
       setUserInput("")
+
+      console.log("HSM after clear input")
+
       setIsGenerating(true)
       setIsPromptPickerOpen(false)
       setIsFilePickerOpen(false)
@@ -251,10 +265,14 @@ export const useChatHandler = () => {
         )
       }
 
+      console.log("HSM before add message", {
+        currentChatMessagesLength: currentChatMessages.length
+      })
+
       const { tempUserChatMessage, tempAssistantChatMessage } =
         createTempMessages(
           messageContent,
-          chatMessages,
+          currentChatMessages,
           chatSettings!,
           b64Images,
           isRegeneration,
@@ -262,12 +280,17 @@ export const useChatHandler = () => {
           selectedAssistant
         )
 
+      console.log("HSM after add message", {
+        tempUserMessage: tempUserChatMessage,
+        tempAssistantMessage: tempAssistantChatMessage
+      })
+
       const payload: ChatPayload = {
         chatSettings: chatSettings!,
         workspaceInstructions: selectedWorkspace!.instructions || "",
         chatMessages: isRegeneration
-          ? [...chatMessages]
-          : [...chatMessages, tempUserChatMessage],
+          ? [...currentChatMessages]
+          : [...currentChatMessages, tempUserChatMessage],
         assistant: selectedChat?.assistant_id ? selectedAssistant : null,
         messageFileItems: retrievedFileItems,
         chatFileItems: chatFileItems
@@ -367,8 +390,10 @@ export const useChatHandler = () => {
         })
       }
 
+      console.log("HSM before handleCreateMessages")
+
       await handleCreateMessages(
-        chatMessages,
+        currentChatMessages,
         currentChat,
         profile!,
         modelData!,
@@ -383,9 +408,14 @@ export const useChatHandler = () => {
         selectedAssistant
       )
 
+      console.log("HSM after handleCreateMessages")
+
       setIsGenerating(false)
       setFirstTokenReceived(false)
+
+      console.log("HSM success end")
     } catch (error) {
+      console.error("HSM catch", error)
       setIsGenerating(false)
       setFirstTokenReceived(false)
       setUserInput(startingInput)
