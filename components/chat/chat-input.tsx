@@ -251,11 +251,22 @@ export const ChatInput: FC<ChatInputProps> = ({}) => {
                 "rounded",
                 !userInput.trim() && "cursor-not-allowed opacity-50"
               )}
-              onClick={() => {
-                console.log("send button clicked")
-                if (!userInput.trim()) return
-                handleSendMessage(userInput, chatMessages, false)
-              }}
+              onClick={async () => {
+  console.log("send button clicked")
+  if (!userInput.trim()) return
+
+  console.log("before handleSendMessage", {
+    userInput,
+    chatMessagesLength: chatMessages.length
+  })
+
+  try {
+    await handleSendMessage(userInput, chatMessages, false)
+    console.log("after handleSendMessage")
+  } catch (error) {
+    console.error("handleSendMessage failed", error)
+  }
+}}
               disabled={!userInput.trim()}
             >
               <IconSend
