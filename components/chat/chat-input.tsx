@@ -267,7 +267,7 @@ export const ChatInput: FC<ChatInputProps> = ({}) => {
     "rounded",
     !userInput && "cursor-not-allowed opacity-50"
   )}
-  onClick={handleSendMessage}
+  onClick={() => handleSendMessage(userInput, chatMessages, false)}
   disabled={!userInput.trim()}
 >
   <IconSend className="bg-primary text-secondary rounded p-1" size={30} />
