@@ -163,19 +163,9 @@ export const ChatInput: FC<ChatInputProps> = ({}) => {
       }
     }
   }
-
-const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  if (!mounted) return null
-
-  return (
-    // jsx
-  )
 }
+  return (
+
     <>
       <div className="flex flex-col flex-wrap justify-center gap-2">
         <ChatFilesDisplay />
