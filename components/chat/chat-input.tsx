@@ -24,6 +24,14 @@ import { useSelectFileHandler } from "./chat-hooks/use-select-file-handler"
 interface ChatInputProps {}
 
 export const ChatInput: FC<ChatInputProps> = ({}) => {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) return null
+
   const { t } = useTranslation()
 
   useHotkey("l", () => {
