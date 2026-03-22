@@ -159,8 +159,14 @@ export const ChatbotUIContext = createContext<ChatbotUIContext>({
   setPrompts: () => {},
   tools: [],
   setTools: () => {},
-  workspaces: [],
-  setWorkspaces: () => {},
+  workspaces: [
+  {
+    id: "default-workspace",
+    name: "Default Workspace",
+    is_home: true
+  } as any
+],
+setWorkspaces: () => {},
 
   // MODELS STORE
   envKeyMap: {},
@@ -173,8 +179,12 @@ export const ChatbotUIContext = createContext<ChatbotUIContext>({
   setAvailableOpenRouterModels: () => {},
 
   // WORKSPACE STORE
-  selectedWorkspace: null,
-  setSelectedWorkspace: () => {},
+  selectedWorkspace: {
+  id: "default-workspace",
+  name: "Default Workspace",
+  is_home: true
+} as any,
+setSelectedWorkspace: () => {},
 
   // PRESET STORE
   selectedPreset: null,
