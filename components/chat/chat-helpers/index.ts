@@ -218,8 +218,7 @@ export const handleHostedChat = async (
     formattedMessages = draftMessages
   }
 
-  const apiEndpoint =
-    provider === "custom" ? "/api/chat/custom" : `/api/chat/${provider}`
+  const apiEndpoint = "/api/chat"
 
   const requestBody = {
     chatSettings: payload.chatSettings,
