@@ -198,6 +198,11 @@ export const useChatHandler = () => {
   ) => {
     const startingInput = messageContent
 
+    if (!selectedWorkspace?.id) {
+      console.error("No valid workspace selected", selectedWorkspace)
+      return
+    }
+
     console.log("HSM start", {
       messageContent,
       chatMessagesLength: currentChatMessages.length,
@@ -236,13 +241,11 @@ export const useChatHandler = () => {
         ...availableOpenRouterModels
       ].find(llm => llm.modelId === chatSettings?.model)
 
-      const workspace =
-        selectedWorkspace ??
-        ({
-          id: "default-workspace",
-          name: "Default Workspace",
-          instructions: ""
-        } as any)
+      const workspace = {
+        id: selectedWorkspace.id,
+        name: selectedWorkspace.name,
+        instructions: selectedWorkspace.instructions || ""
+      }
 
       validateChatSettings(
         chatSettings,
@@ -295,7 +298,7 @@ export const useChatHandler = () => {
 
       const payload: ChatPayload = {
         chatSettings: chatSettings!,
-        workspaceInstructions: workspace.instructions || "",
+        workspaceInstructions: workspace.instructions,
         chatMessages: isRegeneration
           ? [...currentChatMessages]
           : [...currentChatMessages, tempUserChatMessage],
