@@ -241,11 +241,7 @@ export const useChatHandler = () => {
         ...availableOpenRouterModels
       ].find(llm => llm.modelId === chatSettings?.model)
 
-      const workspace = {
-        id: selectedWorkspace.id,
-        name: selectedWorkspace.name,
-        instructions: selectedWorkspace.instructions || ""
-      }
+      const workspace = selectedWorkspace
 
       validateChatSettings(
         chatSettings,
