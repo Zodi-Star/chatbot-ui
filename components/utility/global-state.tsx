@@ -47,6 +47,16 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
   const [workspaces, setWorkspaces] = useState<any[]>([])
   const [selectedWorkspace, setSelectedWorkspace] = useState<any>(null)
 
+  useEffect(() => {
+    if (!selectedWorkspace && workspaces.length > 0) {
+      const homeWorkspace =
+        workspaces.find((workspace: any) => workspace.is_home) || workspaces[0]
+
+      setSelectedWorkspace(homeWorkspace)
+      console.log("Auto-selected workspace", homeWorkspace)
+    }
+  }, [workspaces, selectedWorkspace])
+
   // MODELS STORE
   const [envKeyMap, setEnvKeyMap] = useState<Record<string, VALID_ENV_KEYS>>({})
   const [availableHostedModels, setAvailableHostedModels] = useState<LLM[]>([])
