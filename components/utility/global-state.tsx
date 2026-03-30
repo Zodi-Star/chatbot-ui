@@ -47,28 +47,41 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
   const [workspaces, setWorkspaces] = useState<any[]>([])
   const [selectedWorkspace, setSelectedWorkspace] = useState<any>(null)
 
+  console.log("GLOBAL_STATE_DEBUG", {
+    selectedWorkspace,
+    workspacesCount: workspaces?.length ?? 0,
+    workspaces
+  })
+
   useEffect(() => {
-    if (selectedWorkspace?.id) return
-    if (!workspaces || workspaces.length === 0) return
+    console.log("WORKSPACE_INIT_EFFECT_START", {
+      selectedWorkspace,
+      workspacesCount: workspaces?.length ?? 0,
+      workspaces
+    })
+
+    if (selectedWorkspace?.id) {
+      console.log("WORKSPACE_INIT_SKIPPED_ALREADY_SELECTED")
+      return
+    }
+
+    if (!workspaces || workspaces.length === 0) {
+      console.log("WORKSPACE_INIT_SKIPPED_NO_WORKSPACES")
+      return
+    }
 
     const homeWorkspace =
       workspaces.find((workspace: any) => workspace.is_home) ??
       workspaces.find((workspace: any) => workspace.home) ??
       workspaces[0]
 
+    console.log("WORKSPACE_INIT_CANDIDATE", homeWorkspace)
+
     if (homeWorkspace?.id) {
       console.log("WORKSPACE_INIT_FALLBACK", homeWorkspace)
       setSelectedWorkspace(homeWorkspace)
-    }
-  }, [workspaces, selectedWorkspace])
-
-  useEffect(() => {
-    if (!selectedWorkspace && workspaces.length > 0) {
-      const homeWorkspace =
-        workspaces.find((workspace: any) => workspace.is_home) || workspaces[0]
-
-      setSelectedWorkspace(homeWorkspace)
-      console.log("Auto-selected workspace", homeWorkspace)
+    } else {
+      console.log("WORKSPACE_INIT_SKIPPED_NO_VALID_ID")
     }
   }, [workspaces, selectedWorkspace])
 
