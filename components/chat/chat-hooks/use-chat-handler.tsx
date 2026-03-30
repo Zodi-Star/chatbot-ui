@@ -198,6 +198,11 @@ export const useChatHandler = () => {
   ) => {
     const startingInput = messageContent
 
+    console.log("CHAT_HANDLER_WORKSPACE_DEBUG", {
+      selectedWorkspace,
+      selectedWorkspaceId: selectedWorkspace?.id ?? null
+    })
+
     if (!selectedWorkspace?.id) {
       console.error("No valid workspace selected", selectedWorkspace)
       return
