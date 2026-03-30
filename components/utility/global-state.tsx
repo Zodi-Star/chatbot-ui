@@ -48,6 +48,21 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
   const [selectedWorkspace, setSelectedWorkspace] = useState<any>(null)
 
   useEffect(() => {
+    if (selectedWorkspace?.id) return
+    if (!workspaces || workspaces.length === 0) return
+
+    const homeWorkspace =
+      workspaces.find((workspace: any) => workspace.is_home) ??
+      workspaces.find((workspace: any) => workspace.home) ??
+      workspaces[0]
+
+    if (homeWorkspace?.id) {
+      console.log("WORKSPACE_INIT_FALLBACK", homeWorkspace)
+      setSelectedWorkspace(homeWorkspace)
+    }
+  }, [workspaces, selectedWorkspace])
+
+  useEffect(() => {
     if (!selectedWorkspace && workspaces.length > 0) {
       const homeWorkspace =
         workspaces.find((workspace: any) => workspace.is_home) || workspaces[0]
