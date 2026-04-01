@@ -2,6 +2,7 @@
 
 import { ChatbotUIContext } from "@/context/context"
 import { getProfileByUserId } from "@/db/profile"
+import { getHomeWorkspaceByUserId } from "@/db/workspaces"
 import {
   fetchHostedModels,
   fetchOllamaModels,
@@ -32,7 +33,7 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
   // PROFILE STORE
   const [profile, setProfile] = useState<Tables<"profiles"> | null>(null)
 
-  // ITEMS STORE (workspace system removed)
+  // ITEMS STORE
   const [assistants, setAssistants] = useState<Tables<"assistants">[]>([])
   const [collections, setCollections] = useState<Tables<"collections">[]>([])
   const [chats, setChats] = useState<Tables<"chats">[]>([])
@@ -43,47 +44,16 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
   const [prompts, setPrompts] = useState<Tables<"prompts">[]>([])
   const [tools, setTools] = useState<Tables<"tools">[]>([])
 
-  // Workspace placeholders (kept for compatibility, not used)
+  // WORKSPACE STORE
   const [workspaces, setWorkspaces] = useState<any[]>([])
   const [selectedWorkspace, setSelectedWorkspace] = useState<any>(null)
 
   console.log("GLOBAL_STATE_DEBUG", {
     selectedWorkspace,
+    selectedWorkspaceId: selectedWorkspace?.id ?? null,
     workspacesCount: workspaces?.length ?? 0,
     workspaces
   })
-
-  useEffect(() => {
-    console.log("WORKSPACE_INIT_EFFECT_START", {
-      selectedWorkspace,
-      workspacesCount: workspaces?.length ?? 0,
-      workspaces
-    })
-
-    if (selectedWorkspace?.id) {
-      console.log("WORKSPACE_INIT_SKIPPED_ALREADY_SELECTED")
-      return
-    }
-
-    if (!workspaces || workspaces.length === 0) {
-      console.log("WORKSPACE_INIT_SKIPPED_NO_WORKSPACES")
-      return
-    }
-
-    const homeWorkspace =
-      workspaces.find((workspace: any) => workspace.is_home) ??
-      workspaces.find((workspace: any) => workspace.home) ??
-      workspaces[0]
-
-    console.log("WORKSPACE_INIT_CANDIDATE", homeWorkspace)
-
-    if (homeWorkspace?.id) {
-      console.log("WORKSPACE_INIT_FALLBACK", homeWorkspace)
-      setSelectedWorkspace(homeWorkspace)
-    } else {
-      console.log("WORKSPACE_INIT_SKIPPED_NO_VALID_ID")
-    }
-  }, [workspaces, selectedWorkspace])
 
   // MODELS STORE
   const [envKeyMap, setEnvKeyMap] = useState<Record<string, VALID_ENV_KEYS>>({})
@@ -162,6 +132,17 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
       const user = session.user
       const profile = await getProfileByUserId(user.id)
       setProfile(profile)
+
+      const homeWorkspace = await getHomeWorkspaceByUserId(user.id)
+
+      console.log("HOME_WORKSPACE_FETCH_RESULT", homeWorkspace)
+
+      if (homeWorkspace?.id) {
+        setWorkspaces([homeWorkspace])
+        setSelectedWorkspace(homeWorkspace)
+      } else {
+        console.error("No home workspace found for user", user.id)
+      }
 
       if (!profile?.has_onboarded) {
         router.push("/setup")
