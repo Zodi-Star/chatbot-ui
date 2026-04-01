@@ -1,8 +1,6 @@
-import { createClient } from "@/lib/supabase/browser-client"
+import { supabase } from "@/lib/supabase/browser-client"
 
 export const getHomeWorkspaceByUserId = async (userId: string) => {
-  const supabase = createClient()
-
   const { data, error } = await supabase
     .from("workspaces")
     .select("*")
