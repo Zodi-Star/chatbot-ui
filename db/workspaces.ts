@@ -5,13 +5,26 @@ export const getHomeWorkspaceByUserId = async (userId: string) => {
     .from("workspaces")
     .select("*")
     .eq("user_id", userId)
-    .eq("home", true)
-    .single()
 
   if (error) {
-    console.error("Error fetching home workspace:", error)
+    console.error("Error fetching workspaces:", {
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code
+    })
     return null
   }
 
-  return data
+  if (!data || data.length === 0) {
+    console.error("No workspaces returned for user", userId)
+    return null
+  }
+
+  const homeWorkspace =
+    data.find((workspace: any) => workspace.home === true) ??
+    data.find((workspace: any) => workspace.is_home === true) ??
+    data[0]
+
+  return homeWorkspace
 }
