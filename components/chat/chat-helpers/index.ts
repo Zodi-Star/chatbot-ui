@@ -356,6 +356,21 @@ export const handleCreateChat = async (
   setChats: React.Dispatch<React.SetStateAction<Tables<"chats">[]>>,
   setChatFiles: React.Dispatch<React.SetStateAction<ChatFile[]>>
 ) => {
+  const payload = newMessageFiles.map(file => ({
+    user_id: profile.user_id,
+    chat_id: createdChat.id,
+    file_id: file.id
+  }))
+
+  console.log("CHAT_FILES_PAYLOAD", payload)
+
+  if (payload.some(p => !p.user_id || !p.chat_id || !p.file_id)) {
+    console.error("INVALID CHAT FILE PAYLOAD", payload)
+    throw new Error("Chat file payload invalid")
+  }
+
+  await createChatFiles(payload)
+
   const createdChat = await createChat({
     user_id: profile.user_id,
     workspace_id: selectedWorkspace.id,
