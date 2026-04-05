@@ -388,13 +388,22 @@ export const handleCreateChat = async (
   setSelectedChat(createdChat)
   setChats(chats => [createdChat, ...chats])
 
-  await createChatFiles(
-    newMessageFiles.map(file => ({
-      user_id: profile.user_id,
-      chat_id: createdChat.id,
-      file_id: file.id
-    }))
-  )
+  const payload = newMessageFiles.map(file => ({
+    user_id: profile.user_id,
+    chat_id: createdChat.id,
+    file_id: file.id
+  }))
+
+  console.log("CHAT_FILES_PAYLOAD", payload)
+
+  if (payload.length > 0) {
+    if (payload.some(p => !p.user_id || !p.chat_id || !p.file_id)) {
+      console.error("INVALID CHAT FILE PAYLOAD", payload)
+      throw new Error("Chat file payload invalid")
+    }
+
+    await createChatFiles(payload)
+  }
 
   setChatFiles(prev => [...prev, ...newMessageFiles])
 
