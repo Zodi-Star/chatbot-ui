@@ -388,6 +388,23 @@ export const handleCreateChat = async (
   setSelectedChat(createdChat)
   setChats(chats => [createdChat, ...chats])
 
+  const createdChat = await createChat({
+    user_id: profile.user_id,
+    workspace_id: selectedWorkspace.id,
+    assistant_id: selectedAssistant?.id || null,
+    context_length: chatSettings.contextLength,
+    include_profile_context: chatSettings.includeProfileContext,
+    include_workspace_instructions: chatSettings.includeWorkspaceInstructions,
+    model: chatSettings.model,
+    name: messageContent.substring(0, 100),
+    prompt: chatSettings.prompt,
+    temperature: chatSettings.temperature,
+    embeddings_provider: chatSettings.embeddingsProvider
+  })
+
+  setSelectedChat(createdChat)
+  setChats(chats => [createdChat, ...chats])
+
   const payload = newMessageFiles.map(file => ({
     user_id: profile.user_id,
     chat_id: createdChat.id,
@@ -404,6 +421,10 @@ export const handleCreateChat = async (
 
     await createChatFiles(payload)
   }
+
+  setChatFiles(prev => [...prev, ...newMessageFiles])
+
+  return createdChat
 
   setChatFiles(prev => [...prev, ...newMessageFiles])
 
