@@ -119,7 +119,10 @@ export const ChatUI: FC<ChatUIProps> = ({}) => {
 
     const messageFileItems = await Promise.all(messageFileItemPromises)
 
-    const uniqueFileItems = messageFileItems.flatMap(item => item.file_items)
+    const uniqueFileItems = messageFileItems
+      .flatMap(items => items)
+      .flatMap(item => (item.file_items ? [item.file_items] : []))
+
     setChatFileItems(uniqueFileItems)
 
     const chatFiles = await getChatFilesByChatId(params.chatid as string)
@@ -136,13 +139,15 @@ export const ChatUI: FC<ChatUIProps> = ({}) => {
     setUseRetrieval(true)
     setShowFilesDisplay(true)
 
+    const flattenedMessageFileItems = messageFileItems.flatMap(items => items)
+
     const fetchedChatMessages = fetchedMessages.map(message => {
       return {
         message,
-        fileItems: messageFileItems
-          .filter(messageFileItem => messageFileItem.id === message.id)
+        fileItems: flattenedMessageFileItems
+          .filter(messageFileItem => messageFileItem.message_id === message.id)
           .flatMap(messageFileItem =>
-            messageFileItem.file_items.map(fileItem => fileItem.id)
+            messageFileItem.file_items ? [messageFileItem.file_items.id] : []
           )
       }
     })

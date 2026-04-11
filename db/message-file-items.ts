@@ -16,7 +16,7 @@ export const getMessageFileItemsByMessageId = async (messageId: string) => {
     throw error
   }
 
-  return data
+  return data ?? []
 }
 
 export const createMessageFileItems = async (
@@ -27,9 +27,9 @@ export const createMessageFileItems = async (
     .insert(messageFileItems)
     .select("*")
 
-  if (!createdMessageFileItems) {
-    throw new Error(error.message)
+  if (error) {
+    throw error
   }
 
-  return createdMessageFileItems
+  return createdMessageFileItems ?? []
 }
