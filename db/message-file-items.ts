@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabase/browser-client"
 import { TablesInsert } from "@/supabase/types"
 
-const getMessageFileItemsByMessageId = async (messageId: string) => {
+export const getMessageFileItemsByMessageId = async (messageId: string) => {
   const { data, error } = await supabase
     .from("message_file_items")
     .select(
