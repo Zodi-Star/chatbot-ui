@@ -402,6 +402,10 @@ export const useChatHandler = () => {
         })
       }
 
+      if (currentChat?.id) {
+        router.push(`/chat/${currentChat.id}`)
+      }
+
       console.log("HSM before handleCreateMessages")
 
       await handleCreateMessages(
