@@ -13,7 +13,11 @@ export const getMessageFileItemsByMessageId = async (messageId: string) => {
     .eq("message_id", messageId)
 
   if (error) {
-    throw error
+    console.warn("getMessageFileItemsByMessageId failed", {
+      messageId,
+      error
+    })
+    return []
   }
 
   return data ?? []
