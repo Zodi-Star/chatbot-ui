@@ -3,22 +3,19 @@ import { TablesInsert } from "@/supabase/types"
 
 export const getChatFilesByChatId = async (chatId: string) => {
   const { data: chatFiles, error } = await supabase
-    .from("chats")
-    .select(
-      `
-      id, 
-      name, 
-      files (*)
-    `
-    )
-    .eq("id", chatId)
-    .single()
+    .from("chat_files")
+    .select("*")
+    .eq("chat_id", chatId)
 
-  if (!chatFiles) {
-    throw new Error(error.message)
+  if (error) {
+    console.warn("getChatFilesByChatId failed", {
+      chatId,
+      error
+    })
+    return []
   }
 
-  return chatFiles
+  return chatFiles ?? []
 }
 
 export const createChatFile = async (chatFile: TablesInsert<"chat_files">) => {
@@ -27,11 +24,11 @@ export const createChatFile = async (chatFile: TablesInsert<"chat_files">) => {
     .insert(chatFile)
     .select("*")
 
-  if (!createdChatFile) {
-    throw new Error(error.message)
+  if (error) {
+    throw error
   }
 
-  return createdChatFile
+  return createdChatFile ?? []
 }
 
 export const createChatFiles = async (
@@ -42,9 +39,9 @@ export const createChatFiles = async (
     .insert(chatFiles)
     .select("*")
 
-  if (!createdChatFiles) {
-    throw new Error(error.message)
+  if (error) {
+    throw error
   }
 
-  return createdChatFiles
+  return createdChatFiles ?? []
 }
