@@ -9,13 +9,13 @@ import {
 import { checkApiKey, getServerProfile } from "@/lib/server/server-chat-helpers"
 import { Database } from "@/supabase/types"
 import { FileItemChunk } from "@/types"
-import { createClient } from "@supabase/supabase-js"
+import { createClient as createAdminClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
 import OpenAI from "openai"
 
 export async function POST(req: Request) {
   try {
-    const supabaseAdmin = createClient<Database>(
+    const supabaseAdmin = createAdminClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
@@ -44,7 +44,9 @@ export async function POST(req: Request) {
     }
 
     if (fileMetadata.user_id !== profile.user_id) {
-      throw new Error("Unauthorized")
+      return new NextResponse(JSON.stringify({ message: "Unauthorized" }), {
+        status: 403
+      })
     }
 
     const { data: file, error: fileError } = await supabaseAdmin.storage
@@ -55,7 +57,7 @@ export async function POST(req: Request) {
       throw new Error(`Failed to retrieve file: ${fileError.message}`)
 
     const fileBuffer = Buffer.from(await file.arrayBuffer())
-    const blob = new Blob([fileBuffer])
+    const blob = new Blob([new Uint8Array(fileBuffer)])
     const fileExtension = fileMetadata.name.split(".").pop()?.toLowerCase()
 
     if (embeddingsProvider === "openai") {
