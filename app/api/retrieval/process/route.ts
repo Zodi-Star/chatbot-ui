@@ -9,7 +9,10 @@ import {
 import { checkApiKey, getServerProfile } from "@/lib/server/server-chat-helpers"
 import { Database } from "@/supabase/types"
 import { FileItemChunk } from "@/types"
-import { createClient as createAdminClient } from "@supabase/supabase-js"
+import {
+  createClient as createSupabaseClient,
+  createClient as createAdminClient
+} from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
 import OpenAI from "openai"
 
@@ -20,40 +23,39 @@ export async function POST(req: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
-    console.log("RETRIEVAL_ENV_CHECK", {
-      hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-      hasServiceRoleKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-      urlPrefix: process.env.NEXT_PUBLIC_SUPABASE_URL?.slice(0, 30),
-      keyPrefix: process.env.SUPABASE_SERVICE_ROLE_KEY?.slice(0, 20)
-    })
+    const supabaseUser = createSupabaseClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
 
     const profile = await getServerProfile()
-
     const formData = await req.formData()
 
     const file_id = formData.get("file_id") as string
     const embeddingsProvider = formData.get("embeddingsProvider") as string
 
-    const { data: fileMetadata, error: metadataError } = await supabaseAdmin
+    if (!file_id) {
+      return new NextResponse(JSON.stringify({ message: "Missing file_id" }), {
+        status: 400
+      })
+    }
+
+    const { data: fileMetadata, error: metadataError } = await supabaseUser
       .from("files")
       .select("*")
       .eq("id", file_id)
+      .eq("user_id", profile.user_id)
       .single()
 
     if (metadataError) {
-      console.error("FILES_METADATA_ERROR", metadataError)
       throw new Error(
         `Failed to retrieve file metadata: ${metadataError.message}`
       )
     }
 
     if (!fileMetadata) {
-      throw new Error("File not found")
-    }
-
-    if (fileMetadata.user_id !== profile.user_id) {
-      return new NextResponse(JSON.stringify({ message: "Unauthorized" }), {
-        status: 403
+      return new NextResponse(JSON.stringify({ message: "File not found" }), {
+        status: 404
       })
     }
 
@@ -61,8 +63,9 @@ export async function POST(req: Request) {
       .from("files")
       .download(fileMetadata.file_path)
 
-    if (fileError)
+    if (fileError) {
       throw new Error(`Failed to retrieve file: ${fileError.message}`)
+    }
 
     const fileBuffer = Buffer.from(await file.arrayBuffer())
     const blob = new Blob([new Uint8Array(fileBuffer)])
@@ -107,7 +110,7 @@ export async function POST(req: Request) {
         })
     }
 
-    let embeddings: any = []
+    let embeddings: any[] = []
 
     let openai
     if (profile.use_azure_openai) {
@@ -130,16 +133,13 @@ export async function POST(req: Request) {
         input: chunks.map(chunk => chunk.content)
       })
 
-      embeddings = response.data.map((item: any) => {
-        return item.embedding
-      })
+      embeddings = response.data.map((item: any) => item.embedding)
     } else if (embeddingsProvider === "local") {
       const embeddingPromises = chunks.map(async chunk => {
         try {
           return await generateLocalEmbedding(chunk.content)
         } catch (error) {
           console.error(`Error generating embedding for chunk: ${chunk}`, error)
-
           return null
         }
       })
@@ -178,6 +178,7 @@ export async function POST(req: Request) {
     console.log(`Error in retrieval/process: ${error.stack}`)
     const errorMessage = error?.message || "An unexpected error occurred"
     const errorCode = error.status || 500
+
     return new Response(JSON.stringify({ message: errorMessage }), {
       status: errorCode
     })
