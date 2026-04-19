@@ -20,6 +20,13 @@ export async function POST(req: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
+    console.log("RETRIEVAL_ENV_CHECK", {
+      hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      hasServiceRoleKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+      urlPrefix: process.env.NEXT_PUBLIC_SUPABASE_URL?.slice(0, 30),
+      keyPrefix: process.env.SUPABASE_SERVICE_ROLE_KEY?.slice(0, 20)
+    })
+
     const profile = await getServerProfile()
 
     const formData = await req.formData()
@@ -34,6 +41,7 @@ export async function POST(req: Request) {
       .single()
 
     if (metadataError) {
+      console.error("FILES_METADATA_ERROR", metadataError)
       throw new Error(
         `Failed to retrieve file metadata: ${metadataError.message}`
       )
