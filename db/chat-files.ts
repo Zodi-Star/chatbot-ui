@@ -1,21 +1,38 @@
 import { supabase } from "@/lib/supabase/browser-client"
 import { TablesInsert } from "@/supabase/types"
 
-export const getChatFilesByChatId = async (chatId: string) => {
-  const { data: chatFiles, error } = await supabase
+type ChatFileRecord = {
+  id: string
+  name: string
+  type: string
+  size: number
+}
+
+export const getChatFilesByChatId = async (
+  chatId: string
+): Promise<ChatFileRecord[]> => {
+  const { data, error } = await supabase
     .from("chat_files")
-    .select("*")
+    .select(
+      `
+      file_id,
+      files (
+        id,
+        name,
+        type,
+        size
+      )
+    `
+    )
     .eq("chat_id", chatId)
 
   if (error) {
-    console.warn("getChatFilesByChatId failed", {
-      chatId,
-      error
-    })
-    return []
+    throw error
   }
 
-  return chatFiles ?? []
+  return (data ?? [])
+    .map(item => item.files as ChatFileRecord | null)
+    .filter((file): file is ChatFileRecord => Boolean(file))
 }
 
 export const createChatFile = async (chatFile: TablesInsert<"chat_files">) => {
