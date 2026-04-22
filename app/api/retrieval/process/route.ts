@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     const formData = await req.formData()
 
     const file_id = formData.get("file_id") as string
-    const embeddingsProvider = formData.get("embeddingsProvider") as string
+    const embeddingsProvider: string = "local"
 
     if (!file_id) {
       return new NextResponse(JSON.stringify({ message: "Missing file_id" }), {
