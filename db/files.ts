@@ -134,6 +134,12 @@ export const createFile = async (
   formData.append("file_id", createdFile.id)
   formData.append("embeddingsProvider", embeddingsProvider)
 
+  const chatId = window.location.pathname.split("/chat/")[1] || ""
+
+  if (chatId) {
+    formData.append("chat_id", chatId)
+  }
+
   const response = await fetch("/api/retrieval/process", {
     method: "POST",
     body: formData
