@@ -1,17 +1,21 @@
-import { pipeline } from "@xenova/transformers"
+import { env, pipeline } from "@xenova/transformers"
 
-export async function generateLocalEmbedding(content: string) {
-  const generateEmbedding = await pipeline(
-    "feature-extraction",
-    "Xenova/all-MiniLM-L6-v2"
-  )
+env.cacheDir = process.env.VERCEL ? "/tmp/xenova-cache" : ".cache/xenova"
 
-  const output = await generateEmbedding(content, {
+let embeddingPipeline: any = null
+
+export async function generateLocalEmbedding(text: string) {
+  if (!embeddingPipeline) {
+    embeddingPipeline = await pipeline(
+      "feature-extraction",
+      "Xenova/all-MiniLM-L6-v2"
+    )
+  }
+
+  const output = await embeddingPipeline(text, {
     pooling: "mean",
     normalize: true
   })
 
-  const embedding = Array.from(output.data)
-
-  return embedding
+  return Array.from(output.data)
 }
