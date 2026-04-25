@@ -9,10 +9,7 @@ import {
 import { checkApiKey, getServerProfile } from "@/lib/server/server-chat-helpers"
 import { Database } from "@/supabase/types"
 import { FileItemChunk } from "@/types"
-import {
-  createClient as createSupabaseClient,
-  createClient as createAdminClient
-} from "@supabase/supabase-js"
+import { createClient as createAdminClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
 import OpenAI from "openai"
 
@@ -23,12 +20,11 @@ export async function POST(req: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
-    const supabaseUser = supabaseAdmin
-
     const profile = await getServerProfile()
     const formData = await req.formData()
 
     const file_id = formData.get("file_id") as string
+    const chat_id = formData.get("chat_id") as string | null
     const embeddingsProvider: string = "local"
 
     if (!file_id) {
@@ -37,7 +33,7 @@ export async function POST(req: Request) {
       })
     }
 
-    const { data: fileMetadata, error: metadataError } = await supabaseUser
+    const { data: fileMetadata, error: metadataError } = await supabaseAdmin
       .from("files")
       .select("*")
       .eq("id", file_id)
@@ -159,14 +155,40 @@ export async function POST(req: Request) {
           : null
     }))
 
-    await supabaseAdmin.from("file_items").upsert(file_items)
+    const { error: fileItemsError } = await supabaseAdmin
+      .from("file_items")
+      .upsert(file_items)
+
+    if (fileItemsError) {
+      throw new Error(`Failed to upsert file items: ${fileItemsError.message}`)
+    }
 
     const totalTokens = file_items.reduce((acc, item) => acc + item.tokens, 0)
 
-    await supabaseAdmin
+    const { error: fileUpdateError } = await supabaseAdmin
       .from("files")
       .update({ tokens: totalTokens })
       .eq("id", file_id)
+
+    if (fileUpdateError) {
+      throw new Error(
+        `Failed to update file tokens: ${fileUpdateError.message}`
+      )
+    }
+
+    if (chat_id) {
+      const { error: chatFileError } = await supabaseAdmin
+        .from("chat_files")
+        .upsert({
+          user_id: profile.user_id,
+          chat_id,
+          file_id
+        })
+
+      if (chatFileError) {
+        throw new Error(`Failed to link file to chat: ${chatFileError.message}`)
+      }
+    }
 
     return new NextResponse("Embed Successful", {
       status: 200
