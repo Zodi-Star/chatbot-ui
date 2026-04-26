@@ -102,7 +102,7 @@ export const useSelectFileHandler = () => {
           },
           selectedWorkspace.id,
           chatSettings.embeddingsProvider,
-          selectedChat?.id
+          window.location.pathname.split("/").pop()
         )
 
         setFiles(prev => [...prev, createdFile])
@@ -160,7 +160,7 @@ export const useSelectFileHandler = () => {
             },
             selectedWorkspace.id,
             chatSettings.embeddingsProvider,
-            selectedChat?.id
+            window.location.pathname.split("/").pop()
           )
 
           setFiles(prev => [...prev, createdFile])
