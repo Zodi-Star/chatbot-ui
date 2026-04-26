@@ -62,7 +62,8 @@ export const createFileBasedOnExtension = async (
   file: File,
   fileRecord: TablesInsert<"files">,
   workspace_id: string,
-  embeddingsProvider: "openai" | "local"
+  embeddingsProvider: "openai" | "local",
+  chat_id?: string
 ) => {
   const fileExtension = file.name.split(".").pop()
 
@@ -77,19 +78,26 @@ export const createFileBasedOnExtension = async (
       file,
       fileRecord,
       workspace_id,
-      embeddingsProvider
+      embeddingsProvider,
+      chat_id
     )
   } else {
-    return createFile(file, fileRecord, workspace_id, embeddingsProvider)
+    return createFile(
+      file,
+      fileRecord,
+      workspace_id,
+      embeddingsProvider,
+      chat_id
+    )
   }
 }
 
-// For non-docx files
 export const createFile = async (
   file: File,
   fileRecord: TablesInsert<"files">,
   workspace_id: string,
-  embeddingsProvider: "openai" | "local"
+  embeddingsProvider: "openai" | "local",
+  chat_id?: string
 ) => {
   let validFilename = fileRecord.name.replace(/[^a-z0-9.]/gi, "_").toLowerCase()
   const extension = file.name.split(".").pop()
@@ -99,11 +107,13 @@ export const createFile = async (
     extensionIndex < 0 ? undefined : extensionIndex
   )
   const maxBaseNameLength = 100 - (extension?.length || 0) - 1
+
   if (baseName.length > maxBaseNameLength) {
     fileRecord.name = baseName.substring(0, maxBaseNameLength) + "." + extension
   } else {
     fileRecord.name = baseName + "." + extension
   }
+
   const { data: createdFile, error } = await supabase
     .from("files")
     .insert([fileRecord])
@@ -134,10 +144,8 @@ export const createFile = async (
   formData.append("file_id", createdFile.id)
   formData.append("embeddingsProvider", embeddingsProvider)
 
-  const chatId = window.location.pathname.split("/chat/")[1] || ""
-
-  if (chatId) {
-    formData.append("chat_id", chatId)
+  if (chat_id) {
+    formData.append("chat_id", chat_id)
   }
 
   const response = await fetch("/api/retrieval/process", {
@@ -162,13 +170,13 @@ export const createFile = async (
   return fetchedFile
 }
 
-// // Handle docx files
 export const createDocXFile = async (
   text: string,
   file: File,
   fileRecord: TablesInsert<"files">,
   workspace_id: string,
-  embeddingsProvider: "openai" | "local"
+  embeddingsProvider: "openai" | "local",
+  chat_id?: string
 ) => {
   const { data: createdFile, error } = await supabase
     .from("files")
@@ -202,10 +210,11 @@ export const createDocXFile = async (
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      text: text,
+      text,
       fileId: createdFile.id,
       embeddingsProvider,
-      fileExtension: "docx"
+      fileExtension: "docx",
+      chat_id
     })
   })
 

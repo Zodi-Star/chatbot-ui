@@ -17,6 +17,7 @@ export const ACCEPTED_FILE_TYPES = [
 export const useSelectFileHandler = () => {
   const {
     selectedWorkspace,
+    selectedChat,
     profile,
     chatSettings,
     setNewMessageImages,
@@ -100,7 +101,8 @@ export const useSelectFileHandler = () => {
             type: simplifiedFileType
           },
           selectedWorkspace.id,
-          chatSettings.embeddingsProvider
+          chatSettings.embeddingsProvider,
+          selectedChat?.id
         )
 
         setFiles(prev => [...prev, createdFile])
@@ -157,7 +159,8 @@ export const useSelectFileHandler = () => {
               type: simplifiedFileType
             },
             selectedWorkspace.id,
-            chatSettings.embeddingsProvider
+            chatSettings.embeddingsProvider,
+            selectedChat?.id
           )
 
           setFiles(prev => [...prev, createdFile])
